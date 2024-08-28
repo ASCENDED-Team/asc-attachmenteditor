@@ -1,42 +1,50 @@
 <template>
     <div
-        class="fixed left-0 top-1/2 ml-8 flex h-auto max-h-[90vh] w-[300px] -translate-y-1/2 select-none flex-col rounded-xl bg-[#1a1e24] p-3 text-gray-300 shadow-lg"
+        class="fixed left-0 top-1/2 ml-8 flex h-auto max-h-[95vh] w-[400px] -translate-y-1/2 select-none flex-col rounded-xl bg-[#1a1e24] p-4 text-gray-300 shadow-lg"
         @mouseenter="isHoveringMenu = true"
         @mouseleave="isHoveringMenu = false"
     >
-        <h1 class="mb-2 text-xl font-bold text-white">Attachment Editor</h1>
+        <h1 class="mb-3 text-2xl font-bold text-white">Attachment Editor</h1>
 
-        <div class="mb-2 flex space-x-2">
-            <select v-model="selectedConfig" class="flex-1 rounded bg-[#272c35] px-2 py-1 text-sm text-white">
+        <div class="mb-3 flex space-x-2">
+            <select v-model="selectedConfig" class="flex-1 rounded bg-[#272c35] px-3 py-2 text-base text-white">
                 <option value="">Select a configuration</option>
                 <option v-for="config in savedConfigs" :key="config" :value="config">{{ config }}</option>
             </select>
             <button
                 @click="loadConfig"
-                class="rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600 focus:outline-none"
+                class="rounded bg-blue-500 px-3 py-2 text-sm text-white hover:bg-blue-600 focus:outline-none"
+                :disabled="!selectedConfig"
             >
                 Load
             </button>
+            <button
+                @click="openDeleteDialog"
+                class="rounded bg-red-500 px-3 py-2 text-sm text-white hover:bg-red-600 focus:outline-none"
+                :disabled="!selectedConfig"
+            >
+                Delete
+            </button>
         </div>
 
-        <div class="flex-1 space-y-3 overflow-y-auto pr-2">
-            <div v-for="(value, key) in editorObject" :key="key" class="space-y-1">
-                <label class="text-xs font-medium text-gray-500">{{ getCustomLabel(key) }}</label>
+        <div class="flex-1 space-y-4 overflow-y-auto pr-2">
+            <div v-for="key in editorObjectKeys" :key="key" class="space-y-2">
+                <label class="text-sm font-medium text-gray-400">{{ getCustomLabel(key) }}</label>
                 <input
                     :type="key === 'boneId' || key === 'animationFlag' ? 'number' : 'text'"
                     v-model="editorObject[key]"
-                    class="w-full rounded bg-[#272c35] px-2 py-1 text-sm text-white placeholder-gray-600 focus:outline-none"
+                    class="w-full rounded bg-[#272c35] px-3 py-2 text-base text-white placeholder-gray-600 focus:outline-none"
                     :placeholder="key"
                 />
             </div>
 
-            <div class="space-y-2">
-                <h2 class="text-sm font-semibold text-white">Position and Rotation</h2>
-                <div v-for="type in ['pos', 'rot']" :key="type" class="space-y-1">
-                    <h3 class="text-xs font-medium text-gray-400">{{ type === 'pos' ? 'Position' : 'Rotation' }}</h3>
-                    <div class="grid grid-cols-3 gap-2">
-                        <div v-for="axis in ['x', 'y', 'z']" :key="axis" class="space-y-1">
-                            <label class="text-xs font-medium text-gray-500">{{ axis.toUpperCase() }}</label>
+            <div class="space-y-3">
+                <h2 class="text-lg font-semibold text-white">Position and Rotation</h2>
+                <div v-for="type in ['pos', 'rot']" :key="type" class="space-y-2">
+                    <h3 class="text-base font-medium text-gray-400">{{ type === 'pos' ? 'Position' : 'Rotation' }}</h3>
+                    <div class="grid grid-cols-3 gap-3">
+                        <div v-for="axis in ['x', 'y', 'z']" :key="axis" class="space-y-2">
+                            <label class="text-sm font-medium text-gray-500">{{ axis.toUpperCase() }}</label>
                             <input
                                 type="range"
                                 :min="type === 'pos' ? -5 : -360"
@@ -46,51 +54,105 @@
                                 @input="handlePosSwitch"
                                 class="slider w-full"
                             />
-                            <span class="text-xs text-gray-400">{{ posData[type][axis].toFixed(2) }}</span>
+                            <span class="text-sm text-gray-400">{{ posData[type][axis].toFixed(2) }}</span>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="mt-2 flex justify-between space-x-1">
+        <div class="mt-3 flex justify-between space-x-2">
             <button
                 @click="attachObject"
-                class="flex-1 rounded bg-blue-500 px-2 py-1 text-xs text-white hover:bg-blue-600 focus:outline-none"
+                class="flex-1 rounded bg-blue-500 px-3 py-2 text-sm text-white hover:bg-blue-600 focus:outline-none"
             >
                 Attach
             </button>
             <button
                 @click="detachObject"
-                class="flex-1 rounded bg-red-500 px-2 py-1 text-xs text-white hover:bg-red-600 focus:outline-none"
+                class="flex-1 rounded bg-red-500 px-3 py-2 text-sm text-white hover:bg-red-600 focus:outline-none"
             >
                 Detach
             </button>
             <button
                 @click="playAnimation"
-                class="flex-1 rounded bg-green-500 px-2 py-1 text-xs text-white hover:bg-green-600 focus:outline-none"
+                class="flex-1 rounded bg-green-500 px-3 py-2 text-sm text-white hover:bg-green-600 focus:outline-none"
             >
                 Play
             </button>
             <button
-                @click="saveConfig"
-                class="flex-1 rounded bg-yellow-500 px-2 py-1 text-xs text-white hover:bg-yellow-600 focus:outline-none"
+                @click="openSaveDialog"
+                class="flex-1 rounded bg-yellow-500 px-3 py-2 text-sm text-white hover:bg-yellow-600 focus:outline-none"
             >
                 Save
             </button>
+        </div>
+    </div>
+
+    <!-- Save Configuration Dialog -->
+    <div v-if="showSaveDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="w-80 rounded-lg bg-[#1a1e24] p-5 shadow-lg">
+            <h3 class="mb-4 text-xl font-bold text-white">Save Configuration</h3>
+            <input
+                v-model="newConfigName"
+                class="mb-4 w-full rounded bg-[#272c35] px-3 py-2 text-base text-white placeholder-gray-600 focus:outline-none"
+                placeholder="Enter configuration name"
+                @keyup.enter="saveConfig"
+            />
+            <div class="flex justify-end space-x-2">
+                <button
+                    @click="closeSaveDialog"
+                    class="rounded bg-gray-500 px-4 py-2 text-sm text-white hover:bg-gray-600 focus:outline-none"
+                >
+                    Cancel
+                </button>
+                <button
+                    @click="saveConfig"
+                    class="rounded bg-blue-500 px-4 py-2 text-sm text-white hover:bg-blue-600 focus:outline-none"
+                >
+                    Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Configuration Dialog -->
+    <div v-if="showDeleteDialog" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+        <div class="w-80 rounded-lg bg-[#1a1e24] p-5 shadow-lg">
+            <h3 class="mb-4 text-xl font-bold text-white">Delete Configuration</h3>
+            <p class="mb-4 text-base text-gray-300">
+                Are you sure you want to delete the configuration "{{ selectedConfig }}"?
+            </p>
+            <div class="flex justify-end space-x-2">
+                <button
+                    @click="closeDeleteDialog"
+                    class="rounded bg-gray-500 px-4 py-2 text-sm text-white hover:bg-gray-600 focus:outline-none"
+                >
+                    Cancel
+                </button>
+                <button
+                    @click="deleteConfig"
+                    class="rounded bg-red-500 px-4 py-2 text-sm text-white hover:bg-red-600 focus:outline-none"
+                >
+                    Delete
+                </button>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
 import { useEvents } from '@Composables/useEvents';
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import { AttachmentEditorEvents } from '../shared/events';
 
 const isHoveringMenu = ref(false);
 const isPlayingAnim = ref(false);
 const selectedConfig = ref('');
 const savedConfigs = ref([]);
+const showSaveDialog = ref(false);
+const showDeleteDialog = ref(false);
+const newConfigName = ref('');
 
 const events = useEvents();
 const editorObject = ref({
@@ -100,6 +162,8 @@ const editorObject = ref({
     animationName: '',
     animationFlag: 2,
 });
+
+const editorObjectKeys = computed(() => ['prop', 'boneId', 'animationDictionary', 'animationName', 'animationFlag']);
 
 const posData = ref({
     pos: { x: 0, y: 0, z: 0 },
@@ -136,33 +200,87 @@ function handlePosSwitch() {
 
 function playAnimation() {
     isPlayingAnim.value = !isPlayingAnim.value;
-    events.emitClient(AttachmentEditorEvents.PLAY_ANIMATION, editorObject.value, isPlayingAnim.value);
+    events.emitServer(AttachmentEditorEvents.PLAY_ANIMATION, editorObject.value, isPlayingAnim.value);
+}
+
+function openSaveDialog() {
+    showSaveDialog.value = true;
+    newConfigName.value = '';
+}
+
+function closeSaveDialog() {
+    showSaveDialog.value = false;
+    newConfigName.value = '';
+}
+
+function openDeleteDialog() {
+    if (selectedConfig.value) {
+        showDeleteDialog.value = true;
+    }
+}
+
+function closeDeleteDialog() {
+    showDeleteDialog.value = false;
 }
 
 async function saveConfig() {
-    const configName = prompt('Enter a name for this configuration:');
-    if (configName) {
+    if (newConfigName.value.trim()) {
         const config = {
-            editorObject: editorObject.value,
+            editorObject: {
+                prop: editorObject.value.prop,
+                boneId: editorObject.value.boneId,
+                animationDictionary: editorObject.value.animationDictionary,
+                animationName: editorObject.value.animationName,
+                animationFlag: editorObject.value.animationFlag,
+            },
             posData: posData.value,
         };
-        await events.emitServerRpc('SAVE_ATTACHMENT_CONFIG', { name: configName, data: config });
-        loadSavedConfigs();
+        const success = await events.emitServerRpc(AttachmentEditorEvents.SAVE_CONFIG, {
+            name: newConfigName.value.trim(),
+            data: config,
+        });
+        if (success) {
+            await loadSavedConfigs();
+            closeSaveDialog();
+        } else {
+            console.error('Failed to save configuration');
+        }
     }
 }
 
 async function loadConfig() {
     if (selectedConfig.value) {
-        const config = await events.emitServerRpc('LOAD_ATTACHMENT_CONFIG', selectedConfig.value);
+        const config = await events.emitServerRpc(AttachmentEditorEvents.LOAD_CONFIG, selectedConfig.value);
         if (config) {
-            editorObject.value = config.editorObject;
-            posData.value = config.posData;
+            editorObject.value = {
+                prop: config.editorObject.prop,
+                boneId: config.editorObject.boneId,
+                animationDictionary: config.editorObject.animationDictionary,
+                animationName: config.editorObject.animationName,
+                animationFlag: config.editorObject.animationFlag,
+            };
+            posData.value = { ...config.posData };
+        } else {
+            console.error('Failed to load configuration');
+        }
+    }
+}
+
+async function deleteConfig() {
+    if (selectedConfig.value) {
+        const success = await events.emitServerRpc(AttachmentEditorEvents.DELETE_CONFIG, selectedConfig.value);
+        if (success) {
+            await loadSavedConfigs();
+            selectedConfig.value = '';
+            closeDeleteDialog();
+        } else {
+            console.error('Failed to delete configuration');
         }
     }
 }
 
 async function loadSavedConfigs() {
-    savedConfigs.value = await events.emitClientRpc('GET_SAVED_ATTACHMENT_CONFIGS');
+    savedConfigs.value = await events.emitServerRpc(AttachmentEditorEvents.LOAD_CONFIGS);
 }
 
 onMounted(() => {
@@ -206,7 +324,7 @@ onMounted(() => {
 input[type='range'] {
     appearance: none;
     -webkit-appearance: none;
-    height: 8px;
+    height: 10px;
     border-radius: 5px;
     background: #2d3748;
     outline: none;
@@ -215,16 +333,16 @@ input[type='range'] {
 input[type='range']::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: #4299e1;
     cursor: pointer;
 }
 
 input[type='range']::-moz-range-thumb {
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     background: #4299e1;
     cursor: pointer;

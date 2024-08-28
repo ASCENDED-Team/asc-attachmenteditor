@@ -7,4 +7,5 @@ export const AttachmentEditorEvents = {
     SAVE_CONFIG: 'asc-attachmenteditor:save-config',
     LOAD_CONFIG: 'asc-attachmenteditor:load-config',
     LOAD_CONFIGS: 'asc-attachmenteditor:load-configs',
+    DELETE_CONFIG: 'asc-attachmenteditor:delete-config',
 };

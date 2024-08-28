@@ -1,0 +1,21 @@
+{
+  "editorObject": {
+    "prop": "prop_phone_ing",
+    "boneId": 57005,
+    "animationDictionary": "cellphone@",
+    "animationName": "cellphone_text_read_base",
+    "animationFlag": 2
+  },
+  "posData": {
+    "pos": {
+      "x": 0.14,
+      "y": 0.02,
+      "z": -0.03
+    },
+    "rot": {
+      "x": 8,
+      "y": 79,
+      "z": -219
+    }
+  }
+}

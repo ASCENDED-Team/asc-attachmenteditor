@@ -4,9 +4,11 @@ import * as native from 'natives';
 import { useClientApi } from '@Client/api/index.js';
 import { useWebview } from '@Client/webview/index.js';
 import { AttachmentEditorEvents } from '../../shared/events.js';
+import { useRebarClient } from '@Client/index.js';
 
 const CameraAPI = await useClientApi().getAsync('ascended-camera-api');
 const Webview = useWebview();
+const Rebar = useRebarClient();
 
 let createdObject: number | undefined;
 type currentAttachment = {
